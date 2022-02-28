@@ -9,6 +9,8 @@ SERVICES=(
 )
 
 function download() {
+  echo "Retrieivng shared service secrets."
+
   for file in ${SERVICES[@]}; do
       if [[ ! -f "./env/secret/${file}.env" ]]; then
         echo "Downloading '${file}' secrets"
