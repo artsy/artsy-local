@@ -3,16 +3,16 @@ services:
   ###################
   # Operations
   ###################
-  dd-statsd:
-    container_name: dd-statsd
-    image: datadog/docker-dd-agent:latest
-    restart: unless-stopped
-    ports:
-      - 8125:8125/udp
-    volumes:
-      - /var/run/docker.sock:/var/run/docker.sock:ro
-    env_file:
-      - ./env/dd-statsd.env
+  # dd-statsd:
+  #   container_name: dd-statsd
+  #   image: datadog/docker-dd-agent:latest
+  #   restart: unless-stopped
+  #   ports:
+  #     - 8125:8125/udp
+  #   volumes:
+  #     - /var/run/docker.sock:/var/run/docker.sock:ro
+  #   env_file:
+  #     - ./env/dd-statsd.env
 
   ####################
   # Core Services
@@ -28,13 +28,16 @@ services:
     depends_on:
       - redis-62
 
-  # metaphysics:
-  #   container_name: metaphysics
-  #   image: ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/metaphysics:production
-  #   ports:
-  #     - 3000:3000
-  #   env_file:
-  #     - ./env/secret/metaphysics.env
+  metaphysics:
+    container_name: metaphysics
+    image: ${AWS_ACCOUNT_ID}.dkr.ecr.us-east-1.amazonaws.com/metaphysics:production
+    ports:
+      - 3000:3000
+    env_file:
+      - ./env/secret/metaphysics.env
+      - ./env/metaphysics.env
+    depends_on:
+      - memcached-14
 
   # gravity:
   #   container_name: gravity
@@ -53,11 +56,11 @@ services:
     volumes:
       - redis-62:/data
 
-  # memcached:
-  #   container_name: memcached
-  #   image: memcached
-  #   ports:
-  #     - "11211:11211"
+  memcached-14:
+    container_name: memcached-14
+    image: memcached:1.4.34
+    ports:
+      - "11211:11211"
 
   # mongo-50:
   #   container_name: mongo-50
@@ -94,16 +97,25 @@ services:
   #   ports:
   #     - 9200:9200
 
-  # localstack:
-  #   container_name: localstack
-  #   image: localstack/localstack:0.10.2
-  #   env_file:
-  #     - ./env/localstack.env
-  #   ports:
-  #     - "4567-4584:4567-4584"
-  #     - "8042:8080"
-  #   volumes:
-  #     - "/var/run/docker.sock:/var/run/docker.sock"
+  localstack:
+    container_name: localstack
+    image: localstack/localstack:0.14.0
+    env_file:
+      - ./env/localstack.env
+    ports:
+      - "4567-4584:4567-4584"
+      - "8042:8080"
+    volumes:
+      - "/var/run/docker.sock:/var/run/docker.sock"
+
+  localstack-setup:
+    container_name: localstack-setup
+    build:
+      context: ./docker/localstack
+    env_file:
+      - ./env/localstack.env
+    depends_on:
+      - localstack
 
 volumes:
   redis-62:
